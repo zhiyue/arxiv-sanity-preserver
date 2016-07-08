@@ -118,3 +118,11 @@ if __name__ == "__main__":
   # save the database before we quit
   print 'saving database with %d papers to %s' % (len(db), args.db_path)
   utils.safe_pickle_dump(db, args.db_path)
+            if not rawid in db or j['_version'] > db[rawid]['_version']:
+                db[rawid] = j
+                try:
+                  print u'updated %s added %s' % (j['updated'], j['title'])
+                except Exception, e:
+                    print e
+                else:
+                  pass
