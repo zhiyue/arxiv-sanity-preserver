@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import tempfile
 import os
 import cPickle as pickle
+import shutil
 
 # Context managers for atomic writes courtesy of
 # http://stackoverflow.com/questions/2333872/atomic-writing-to-file-with-python
@@ -57,7 +58,8 @@ def open_atomic(filepath, *args, **kwargs):
             if fsync:
                 f.flush()
                 os.fsync(file.fileno())
-        os.rename(tmppath, filepath)
+#        os.rename(tmppath, filepath)
+        shutil.move(tmppath, filepath)
 
 def safe_pickle_dump(obj, fname):
     with open_atomic(fname, 'wb') as f:
