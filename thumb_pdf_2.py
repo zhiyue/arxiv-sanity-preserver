@@ -8,7 +8,6 @@ import sys
 import time
 import shutil
 from subprocess import Popen
-from thumbil_worker import generate_thumbil
 
 #os.system('mkdir -p static/thumbs')
 if not os.path.exists('static/thumbs'):
@@ -32,7 +31,7 @@ for i,p in enumerate(pdfs):
     continue
 
   print "%d/%d processing %s" % (i, len(pdfs), p)
-  generate_thumbil.delay(fullpath, outpath)
+
   # take first 8 pages of the pdf ([0-7]), since 9th page are references
   # tile them horizontally, use JPEG compression 80, trim the borders for each image
   #cmd = "montage %s[0-7] -mode Concatenate -tile x1 -quality 80 -resize x230 -trim %s" % (fullpath, "thumbs/" + f + ".jpg")
@@ -43,14 +42,14 @@ for i,p in enumerate(pdfs):
   # that the version above, while more elegant, had some problem with it on some pdfs. I think.
 
   # erase previous intermediate files test-*.png
-  # if os.path.isfile('tmp/test-0.png'):
-  #   for i in xrange(8):
-  #     f = 'tmp/test-%d.png' % (i,)
-  #     f2= 'tmp/testbuf-%d.png' % (i,)
-  #     if os.path.isfile(f):
-  #       # cmd = 'mv %s %s' % (f, f2)
-  #       # os.system(cmd)
-  #       shutil.move(f, f2)
+  if os.path.isfile('tmp/test-0.png'):
+    for i in xrange(8):
+      f = 'tmp/test-%d.png' % (i,)
+      f2= 'tmp/testbuf-%d.png' % (i,)
+      if os.path.isfile(f):
+        # cmd = 'mv %s %s' % (f, f2)
+        # os.system(cmd)
+        shutil.move(f, f2)
 
         # okay originally I was going to issue an rm call, but I am too terrified of
         # running scripted rm queries, so what we will do is instead issue a "mv" call
@@ -59,33 +58,34 @@ for i,p in enumerate(pdfs):
         # "leek" over to this result, through the intermediate files.
 
   # spawn async. convert can unfortunately enter an infinite loop, have to handle this
-  # source_pdf = "%s[0-7]" % (fullpath)
-  # print source_pdf
-  # cmd = r'convert %s -thumbnail x156 tmp/test.png' % (source_pdf,)
-  # print cmd
-  # #pp = Popen(['convert', source_pdf, "-thumbnail", "x156", "tmp/test.png"])
-  # pp = Popen(cmd, shell=True)
-  # t0 = time.time()
-  # while time.time() - t0 < 15: # give it 15 seconds deadline
-  #   ret = pp.poll()
-  #   if not (ret is None):
-  #     # process terminated
-  #     break
-  #   time.sleep(0.1)
-  # ret = pp.poll()
-  # if ret is None:
-  #   # we did not terminate in 5 seconds
-  #   pp.terminate() # give up
+  source_pdf = "%s[0-7]" % (fullpath)
+  #print source_pdf
+  cmd = r'convert %s -thumbnail x156 tmp/test.png' % (source_pdf,)
 
-  # if not os.path.isfile('tmp/test-0.png'):
-  #   # failed to render pdf, replace with missing image
-  #   #os.system('cp %s %s' % ('static/thumbs/missing.jpg', outpath))
-  #   shutil.copyfile('static/thumbs/missing.jpg', outpath)
-  #   print 'could not render pdf, creating a missing image placeholder'
-  # else:
-  #   cmd = "montage -mode concatenate -quality 80 -tile x1 tmp/test-*.png %s" % (outpath, )
-  #   print cmd
-  #   os.system(cmd)
+  #print cmd
+  #pp = Popen(['convert', source_pdf, "-thumbnail", "x156", "tmp/test.png"])
+  pp = Popen(cmd, shell=True)
+  t0 = time.time()
+  while time.time() - t0 < 15: # give it 15 seconds deadline
+    ret = pp.poll()
+    if not (ret is None):
+      # process terminated
+      break
+    time.sleep(0.1)
+  ret = pp.poll()
+  if ret is None:
+    # we did not terminate in 5 seconds
+    pp.terminate() # give up
 
-  # time.sleep(0.01) # silly way for allowing for ctrl+c termination
+  if not os.path.isfile('tmp/test-0.png'):
+    # failed to render pdf, replace with missing image
+    #os.system('cp %s %s' % ('static/thumbs/missing.jpg', outpath))
+    shutil.copyfile('static/thumbs/missing.jpg', outpath)
+    print 'could not render pdf, creating a missing image placeholder'
+  else:
+    cmd = "montage -mode concatenate -quality 80 -tile x1 tmp/test-*.png %s" % (outpath, )
+    print cmd
+    os.system(cmd)
+
+  time.sleep(0.01) # silly way for allowing for ctrl+c termination
 
