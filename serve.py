@@ -14,6 +14,7 @@ from random import shuffle
 import re
 import os
 import utils
+import datetime 
 
 # database configuration
 DATABASE = 'as.db'
@@ -83,7 +84,8 @@ def date_sort():
   for pid in db:
     p = db[pid]
     timestruct = dateutil.parser.parse(p['updated'])
-    p['time_updated'] = int(timestruct.strftime("%s"))
+    #print timestruct,type(timestruct)
+    p['time_updated'] = (timestruct.replace(tzinfo=None) -datetime.datetime(1970,1,1,tzinfo=None)).total_seconds()
     scores.append((p['time_updated'], p))
   scores.sort(reverse=True)
   out = [sp[1] for sp in scores]
