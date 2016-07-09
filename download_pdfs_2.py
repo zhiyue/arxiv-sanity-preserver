@@ -7,7 +7,9 @@ import random
 import wget
 from pdf_worker import download
 
-os.system('mkdir -p pdf')  # ?
+#os.system('mkdir -p pdf')  # ?
+if not os.path.exists('pdf'):
+    os.makedirs('pdf')
 
 timeout_secs = 10  # after this many seconds we give up on a paper
 numok = 0
