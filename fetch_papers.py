@@ -7,7 +7,6 @@ so this file will be loaded first, and then new results will be added to it.
 import urllib
 import time
 import feedparser
-import os
 import cPickle as pickle
 import argparse
 import random
@@ -44,6 +43,7 @@ def parse_arxiv_url(url):
     assert len(parts) == 2, 'error parsing url ' + url
     return parts[0], int(parts[1])
 
+
 if __name__ == "__main__":
 
     # parse input arguments
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     # misc hardcoded variables
     base_url = 'http://export.arxiv.org/api/query?'  # base api query url
-    print 'Searching arXiv for %s' % (args.search_query, )
+    print 'Searching arXiv for %s' % (args.search_query,)
 
     # lets load the existing database to memory
     try:
@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     # -----------------------------------------------------------------------------
     # main loop where we fetch the new results
-    print 'database has %d entries at start' % (len(db), )
+    print 'database has %d entries at start' % (len(db),)
     num_added_total = 0
     for i in range(args.start_index, args.max_index, args.results_per_iteration):
 
@@ -102,14 +102,14 @@ if __name__ == "__main__":
 
             # add to our database if we didn't have it before, or if this is a
             # new version
-            if not rawid in db or j['_version'] > db[rawid]['_version']:
+            if rawid not in db or j['_version'] > db[rawid]['_version']:
                 db[rawid] = j
                 try:
-                  print u'updated %s added %s' % (j['updated'], j['title'])
+                    print u'updated %s added %s' % (j['updated'], j['title'])
                 except Exception, e:
                     print e
                 else:
-                  pass
+                    pass
 
                 num_added += 1
             else:
@@ -127,7 +127,7 @@ if __name__ == "__main__":
             print 'No new papers were added. Assuming no new papers exist. Exitting.'
             break
 
-        print 'Sleeping for %i seconds' % (args.wait_time, )
+        print 'Sleeping for %i seconds' % (args.wait_time,)
         time.sleep(args.wait_time + random.uniform(0, 3))
 
     # save the database before we quit

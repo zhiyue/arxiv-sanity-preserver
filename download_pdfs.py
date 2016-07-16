@@ -1,15 +1,13 @@
-import cPickle as pickle
-import urllib2
-import shutil
-import time
+# -*- coding: utf-8 -*-
 import os
-import random
-import wget
-from pdf_worker import download
+import pickle
 
-os.system('mkdir -p pdf')  # ?
+from tasks import download
 
-timeout_secs = 10  # after this many seconds we give up on a paper
+if not os.path.exists('pdf'):
+    os.makedirs('pdf')
+
+
 numok = 0
 numtot = 0
 db = pickle.load(open('db.p', 'rb'))
@@ -21,25 +19,14 @@ for pid, j in db.iteritems():
     pdf_url = pdfs[0] + '.pdf'
     basename = pdf_url.split('/')[-1]
     fname = os.path.join('pdf', basename)
-
-    # try retrieve the pdf
     numtot += 1
-    try:
-        if not basename in have:
-            print 'fetching %s into %s' % (pdf_url, fname)
-            #req = urllib2.urlopen(pdf_url, None, timeout_secs)
-            # with open(fname, 'wb') as fp:
-            #    shutil.copyfileobj(req, fp)
-            #wget.download(pdf_url, fname)
-            download.delay(pdf_url, fname)
-            #time.sleep(0.1 + random.uniform(0, 0.2))
-        else:
-            print '%s exists, skipping' % (fname, )
+    if basename not in have:
+        print 'fetching %s into %s' % (pdf_url, fname)
+        download.delay(pdf_url, fname)
         numok += 1
-    except Exception, e:
-        print 'error downloading: ', pdf_url
-        print e
+    else:
+        print '%s exists, skipping' % (fname, )
 
-    print '%d/%d of %d downloaded ok.' % (numok, numtot, len(db))
+    print '%d/%d of %d add to download tasks.' % (numok, numtot, len(db))
 
 print 'final number of papers downloaded okay: %d/%d' % (numok, len(db))

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from contextlib import contextmanager
 
 import tempfile
@@ -58,9 +59,12 @@ def open_atomic(filepath, *args, **kwargs):
             if fsync:
                 f.flush()
                 os.fsync(file.fileno())
-#        os.rename(tmppath, filepath)
+                #        os.rename(tmppath, filepath)
         shutil.move(tmppath, filepath)
+
 
 def safe_pickle_dump(obj, fname):
     with open_atomic(fname, 'wb') as f:
         pickle.dump(obj, f, -1)
+
+

@@ -5,34 +5,29 @@ using the "pdftotext" command. If a pdf cannot be converted, this
 script will not produce the output file.
 """
 
-import cPickle as pickle
-import urllib2
-import shutil
-import time
+import logging
 import os
-import random
-from pdf2txt_worker import transform
-os.system('mkdir -p txt') # ?
+
+from tasks import transform
+
+logging.basicConfig(level=logging.INFO,
+                    format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+                    datefmt='%H:%M:%S')
+logger = logging.getLogger(__name__)
+
+
+if not os.path.exists('txt'):
+    os.makedirs('txt')
 
 have = set(os.listdir('txt'))
 files = os.listdir('pdf')
-for i,f in enumerate(files, start=1):
-  pdf_path = os.path.join('pdf', f)
-  txt_basename = f + '.txt'
-  txt_path = os.path.join('txt', txt_basename)
-  if not txt_basename in have:
-    cmd = "pdftotext %s %s" % (pdf_path, txt_path)
-    # os.system(cmd)
-    transform.delay(pdf_path, txt_path)
-    print '%d/%d %s' % (i, len(files), cmd)
-
-    # # check output was made
-    # if not os.path.isfile(txt_path):
-    #   # there was an error with converting the pdf
-    #   with open(txt_path, 'w') as fin:
-    #         pass
-    #   #os.system('touch ' + txt_path) # create empty file, but it's a record of having tried to convert
-
-    #time.sleep(0.02) # silly way for allowing for ctrl+c termination
-  else:
-    print 'skipping %s, already exists.' % (pdf_path, )
+for i, f in enumerate(files, start=1):
+    pdf_path = os.path.join('pdf', f)
+    txt_basename = f + '.txt'
+    txt_path = os.path.join('txt', txt_basename)
+    if txt_basename not in have:
+        cmd = "pdftotext %s %s" % (pdf_path, txt_path)
+        transform.delay(pdf_path, txt_path)
+        logger.info('%d/%d %s' % (i, len(files), cmd))
+    else:
+        logger.info('skipping %s, already exists.', pdf_path)
